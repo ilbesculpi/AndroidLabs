@@ -55,13 +55,13 @@ public class FoodListAdapter extends ArrayAdapter<Food> {
     }
 
     @Override
-    public int getItemViewType(int position) {
-        return getItem(position).isFeatured() ? 1 : 0;
+    public int getViewTypeCount() {
+        return 2;   // default & featured
     }
 
     @Override
-    public int getViewTypeCount() {
-        return 2;   // default & featured
+    public int getItemViewType(int position) {
+        return getItem(position).isFeatured() ? 1 : 0;
     }
 
     private LayoutInflater getInflater() {
