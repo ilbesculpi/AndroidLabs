@@ -1,9 +1,8 @@
 package com.ilbesculpi.labs.lab05.models;
 
-import android.os.Parcel;
-import android.os.Parcelable;
+import java.io.Serializable;
 
-public class Food implements Parcelable {
+public class Food implements Serializable {
 
     private int id;
     private String name;
@@ -23,15 +22,6 @@ public class Food implements Parcelable {
         this.type = type;
         this.price = price;
         this.featured = featured;
-    }
-
-    public Food(Parcel parcel) {
-        this.id = parcel.readInt();
-        this.name = parcel.readString();
-        this.picture = parcel.readString();
-        this.type = FoodType.fromString(parcel.readString());
-        this.price = parcel.readFloat();
-        this.featured = parcel.readInt() == 0 ? false : true;
     }
 
 
@@ -92,36 +82,4 @@ public class Food implements Parcelable {
         return getName();
     }
 
-    //
-    // Parcelable
-    //
-
-    public static final Parcelable.Creator<Food> CREATOR = new Parcelable.Creator<Food>() {
-
-        @Override
-        public Food createFromParcel(Parcel parcel) {
-            return new Food(parcel);
-        }
-
-        @Override
-        public Food[] newArray(int i) {
-            return new Food[i];
-        }
-
-    };
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeInt(getId());
-        parcel.writeString(getName());
-        parcel.writeString(getPicture());
-        parcel.writeString(getType().getValue());
-        parcel.writeFloat(getPrice());
-        parcel.writeInt(isFeatured() ? 1 : 0);
-    }
 }

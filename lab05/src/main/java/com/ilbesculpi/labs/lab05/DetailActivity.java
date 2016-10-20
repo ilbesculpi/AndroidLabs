@@ -20,7 +20,8 @@ public class DetailActivity extends AppCompatActivity {
 
         setContentView(R.layout.food_detail);
 
-        food = (Food) getIntent().getParcelableExtra("food");
+        // retrieve food from extra
+        food = (Food) getIntent().getSerializableExtra("food");
 
         // configure app bar
         configureAppBar();

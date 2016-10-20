@@ -4,8 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import com.ilbesculpi.labs.lab05.adapters.FoodListAdapter;
@@ -16,7 +16,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    ListView listView;
+    AbsListView listView;
     FoodListAdapter adapter;
 
     @Override
@@ -31,8 +31,13 @@ public class MainActivity extends AppCompatActivity {
 
         // set view references
         final List<Food> foods = FoodFactory.getJokes();
-        listView = (ListView) findViewById(R.id.listView);
+        listView = (AbsListView) findViewById(R.id.listView);
         configureListView(foods);
+    }
+
+    private void configureAppBar() {
+        getSupportActionBar()
+                .setTitle(R.string.home_title);
     }
 
     private void configureListView(List<Food> foods) {
@@ -42,17 +47,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Food food = adapter.getItem(i);
-                Toast.makeText(MainActivity.this, "Item clicked: " + food.toString(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Item clicked: " + food.toString(), Toast.LENGTH_SHORT)
+                        .show();
+                // start detail activity with food item
                 Intent intent = new Intent(MainActivity.this, DetailActivity.class);
                 intent.putExtra("food", food);
                 startActivity(intent);
             }
         });
-    }
-
-    private void configureAppBar() {
-        getSupportActionBar()
-                .setTitle(R.string.home_title);
     }
 
 }
