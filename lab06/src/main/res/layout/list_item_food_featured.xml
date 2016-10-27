@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp"
+    android:background="#feeebb">
+
+    <ImageView
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:id="@+id/image"
+        android:layout_alignParentRight="false"
+        android:layout_alignParentEnd="false"
+        android:src="@drawable/placeholder"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:name="Text"
+        android:id="@+id/label_name"
+        android:text="Food Name"
+        android:layout_alignTop="@+id/image"
+        android:layout_toRightOf="@+id/image"
+        android:layout_marginLeft="8dp"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Food Type"
+        android:id="@+id/label_type"
+        android:layout_below="@+id/label_name"
+        android:layout_alignLeft="@+id/label_name"
+        android:layout_alignStart="@+id/label_name"
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1200Bs"
+        android:id="@+id/label_price"
+        android:layout_below="@+id/label_type"
+        android:layout_alignLeft="@+id/label_type"
+        android:layout_alignStart="@+id/label_type"
+        android:layout_marginTop="8dp"
+        android:textStyle="bold" />
+
+
+</RelativeLayout>

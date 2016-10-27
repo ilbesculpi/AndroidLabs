@@ -1,88 +1,79 @@
 package com.ilbesculpi.labs.lab06;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.Toast;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
+import com.ilbesculpi.labs.lab06.adapters.FoodListAdapter;
+import com.ilbesculpi.labs.lab06.http.HttpConnect;
+import com.ilbesculpi.labs.lab06.models.Food;
+import com.ilbesculpi.labs.lab06.models.FoodType;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+
+    AbsListView listView;
+    FoodListAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // set content
         setContentView(R.layout.activity_main);
-        new HttpAsyncTask().execute("http://androidlabs.miro.beecloud.me/api/food.json");
+
+        // configure app bar
+        configureAppBar();
+
+        // set view references
+        final List<Food> foods = new ArrayList<>();
+        listView = (AbsListView) findViewById(R.id.listView);
+        configureListView(foods);
+
+        // fetch server data
+        fetchServerData();
     }
 
-    public static String GET(String url){
-        InputStream inputStream = null;
-        String result = "";
-        try {
+    private void configureAppBar() {
+        getSupportActionBar()
+                .setTitle(R.string.home_title);
+    }
 
-            // create HttpClient
-            HttpClient httpclient = new DefaultHttpClient();
-
-            // make GET request to the given URL
-            HttpResponse httpResponse = httpclient.execute(new HttpGet(url));
-
-            // receive response as inputStream
-            inputStream = httpResponse.getEntity().getContent();
-
-            // convert inputstream to string
-            if(inputStream != null) {
-                result = convertInputStreamToString(inputStream);
+    private void configureListView(List<Food> foods) {
+        adapter = new FoodListAdapter(this, 0, foods);
+        listView.setAdapter(adapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Food food = adapter.getItem(i);
+                Toast.makeText(MainActivity.this, "Item clicked: " + food.toString(), Toast.LENGTH_SHORT)
+                        .show();
+                // start detail activity with food item
+                Intent intent = new Intent(MainActivity.this, DetailActivity.class);
+                intent.putExtra("food", food);
+                startActivity(intent);
             }
-            else {
-                result = "Did not work!";
-            }
-
-        }
-        catch (Exception e) {
-            Log.e("Lab06", e.getLocalizedMessage());
-        }
-
-        return result;
+        });
     }
 
-    public static JSONObject getJSON(String url) {
-        String responseText = GET(url);
-        JSONObject json = null;
-        try {
-            json = new JSONObject(responseText);
-            return json;
-        }
-        catch (JSONException e) {
-            Log.e("Lab06", e.getMessage());
-        }
-        return null;
-    }
-
-    private static String convertInputStreamToString(InputStream inputStream) throws IOException {
-        BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(inputStream));
-        String line = "";
-        String result = "";
-        while((line = bufferedReader.readLine()) != null) {
-            result += line;
-        }
-        inputStream.close();
-        return result;
+    private void fetchServerData() {
+        new FetchFoodTask()
+                .execute("http://androidlabs.miro.beecloud.me/api/food.json");
     }
 
     public boolean isConnected() {
@@ -96,25 +87,47 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class HttpAsyncTask extends AsyncTask<String, Void, JSONObject> {
+    private class FetchFoodTask extends AsyncTask<String, Void, JSONObject> {
 
         @Override
         protected JSONObject doInBackground(String... urls) {
-            return getJSON(urls[0]);
-            //return GET(urls[0]);
+            Log.d("Lab06", "fetch url " + urls[0]);
+            return HttpConnect.getJSON(urls[0]);
         }
 
         @Override
         protected void onPostExecute(JSONObject result) {
             if( result != null ) {
                 try {
+
                     JSONArray list = result.getJSONArray("list");
-                    Log.d("Lab06", list.toString(4));
+                    for( int i = 0; i < list.length(); i++ ) {
+                        JSONObject item = list.getJSONObject(i);
+                        Food food = new Food();
+                        food.setId(item.getInt("id"));
+                        food.setName(item.getString("name"));
+                        food.setPicture(item.getString("picture_url"));
+                        food.setPrice( (float) item.getDouble("price") );
+                        food.setFeatured( item.getBoolean("featured") );
+                        FoodType type = new FoodType();
+                        type.setName( item.getJSONObject("type").getString("name") );
+                        type.setColor( item.getJSONObject("type").getString("color") );
+                        food.setType(type);
+
+                        // append to the adapter list
+                        adapter.add(food);
+                    }
+
+                    // refresh adapter
+                    adapter.notifyDataSetChanged();;
+                    Log.d("Lab06", "download complete: " + list.length() + " items received.");
                 }
                 catch(JSONException e) {
                     // do nothing?
+                    Toast.makeText(getBaseContext(), "An error occurred fetching the list.", Toast.LENGTH_LONG)
+                            .show();
                 }
-                Toast.makeText(getBaseContext(), "Received Response!", Toast.LENGTH_LONG).show();
+
             }
         }
 
