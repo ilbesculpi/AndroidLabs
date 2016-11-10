@@ -1,11 +1,9 @@
 package com.ilbesculpi.labs.lab06;
 
-import android.app.Activity;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -29,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
 
     AbsListView listView;
     FoodListAdapter adapter;
+    SwipeRefreshLayout refreshControl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
         final List<Food> foods = new ArrayList<>();
         listView = (AbsListView) findViewById(R.id.listView);
         configureListView(foods);
+        refreshControl = (SwipeRefreshLayout) findViewById(R.id.refresh);
+        configureRefreshControl();
 
         // fetch server data
         fetchServerData();
@@ -71,20 +72,24 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void configureRefreshControl() {
+        refreshControl.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                Log.d("Lab06", "refresh()");
+                fetchNewItems();
+            }
+        });
+    }
+
     private void fetchServerData() {
         new FetchFoodTask()
                 .execute("http://androidlabs.miro.beecloud.me/api/food.json");
     }
 
-    public boolean isConnected() {
-        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Activity.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        if (networkInfo != null && networkInfo.isConnected()) {
-            return true;
-        }
-        else {
-            return false;
-        }
+    private void fetchNewItems() {
+        new FetchFoodTask()
+                .execute("http://androidlabs.miro.beecloud.me/api/food_new.json");
     }
 
     private class FetchFoodTask extends AsyncTask<String, Void, JSONObject> {
@@ -97,9 +102,10 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(JSONObject result) {
-            if( result != null ) {
-                try {
 
+            if( result != null ) {
+
+                try {
                     JSONArray list = result.getJSONArray("list");
                     for( int i = 0; i < list.length(); i++ ) {
                         JSONObject item = list.getJSONObject(i);
@@ -113,11 +119,9 @@ public class MainActivity extends AppCompatActivity {
                         type.setName( item.getJSONObject("type").getString("name") );
                         type.setColor( item.getJSONObject("type").getString("color") );
                         food.setType(type);
-
                         // append to the adapter list
                         adapter.add(food);
                     }
-
                     // refresh adapter
                     adapter.notifyDataSetChanged();;
                     Log.d("Lab06", "download complete: " + list.length() + " items received.");
@@ -129,6 +133,9 @@ public class MainActivity extends AppCompatActivity {
                 }
 
             }
+
+            // refresh control...
+            refreshControl.setRefreshing(false);
         }
 
     }
